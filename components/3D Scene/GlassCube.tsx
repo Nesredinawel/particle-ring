@@ -55,8 +55,8 @@ export default function GlassCube() {
         prevPointer.current.set(e.clientX, e.clientY);
 
         // direction-aware rolling
-        rollVelocity.current.x += dx * 0.0008;
-        rollVelocity.current.y += dy * 0.0008;
+        rollVelocity.current.x += dx * 0.001;
+        rollVelocity.current.y += dy * 0.01;
       }}
     >
       <boxGeometry args={[2.3, 2.3, 2.3]} />
