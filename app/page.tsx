@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 
 export default function Home() {
   return (
-    <main className="w-screen h-screen bg-black gap-48">
+    <main className="w-screen h-screen  gap-48">
       
       <Hero />
       <Feature />

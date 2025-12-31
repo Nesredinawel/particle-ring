@@ -1,4 +1,5 @@
 import Scene from "../3D Scene/Scene";
+import Scene3 from "../3D Scene/Scene3";
 import Button from "../ui/Button";
 import HeroHeadline from "./HeroHeadline";
 import Navbar from "./Navbar";
@@ -6,7 +7,7 @@ import SocialLinks from "./SocialLinks";
 
 export default function Hero() {
   return (
-    <section className="h-screen w-screen px-20 border-b-2 border-white relative overflow-hidden">
+    <section className="h-screen w-screen px-20 border-b-2 border-white relative overflow-hidden bg-black">
       
       {/* Navbar */}
       <div className="absolute top-0 left-0 w-full z-20">
@@ -34,7 +35,7 @@ export default function Hero() {
       </div>
 
       {/* 3D Scene */}
-      <Scene />
+      <Scene3 />
        {/*  vertical line */}
       <div className="absolute top-0 left-16 h-full w-[2px] bg-white opacity-20 z-10"></div>
       {/*  vertical line */}
