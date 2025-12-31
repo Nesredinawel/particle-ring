@@ -14,7 +14,7 @@ export default function Hero() {
       </div>
 
       {/* Left text */}
-      <div className="absolute bottom-0 left-0 px-32 py-24">
+      <div className="absolute bottom-2/12 left-0 px-24 ">
         <p className="text-4xl text-white font-extralight">Let's Build the</p>
         <p className="text-4xl text-white font-extralight">Future of</p>
         <p className="text-4xl text-white font-extrabold">Design.</p>
@@ -29,7 +29,7 @@ export default function Hero() {
       <SocialLinks />
 
       {/* Hero Headline */}
-      <div className="absolute bottom-96 left-0 px-32 py-24">
+      <div className="absolute top-2/12 left-0 px-24  ">
         <HeroHeadline />
       </div>
 
@@ -39,13 +39,8 @@ export default function Hero() {
       <div className="absolute top-0 left-16 h-full w-[2px] bg-white opacity-20 z-10"></div>
       {/*  vertical line */}
       <div className="absolute top-0 right-16 h-full w-[2px] bg-white opacity-20 z-10"></div>
-      {/*  horizontal line */}
-      <div className="absolute top-32 left-0 w-full h-[1px] bg-white opacity-20 z-10"></div>
-       
-       {/*  horizontal line */}
-      <div className="absolute bottom-[85px] right-[280px] w-[430px] h-[2px] bg-white  z-10"></div>
-     
-
+    
+      
       {/* Button at bottom center */}
       <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-30 pointer-events-auto">
         <Button label="View Work" onClick={() => alert("clicked!")} variant="outline" />
