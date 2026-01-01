@@ -35,7 +35,8 @@ export default function Scene3() {
       />
 
       {/* Custom background */}
-      <BackgroundText />
+      <BackgroundText 
+      label="DESIGN" />
 
       {/* Glass bubbles */}
       <GlassBubbleCluster />

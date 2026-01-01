@@ -20,7 +20,7 @@ function SceneContent() {
       <pointLight position={[3, -5, -5]} intensity={0.5} color="magenta" />
 
       {/* BACKGROUND TEXT */}
-      <BackgroundText />
+      <BackgroundText label="FUTURE" />
 
       {/* GLASS CUBE */}
       <GlassCube />

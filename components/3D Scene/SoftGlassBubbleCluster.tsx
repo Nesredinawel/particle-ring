@@ -8,7 +8,7 @@ import * as THREE from "three";
    CONFIG
 ======================= */
 
-const BUBBLE_COUNT = 1000;
+const BUBBLE_COUNT = 200;
 
 // Physics
 const CENTER_FORCE = 0.006;
@@ -16,8 +16,8 @@ const SEPARATION_FORCE = 0.06;
 const DAMPING = 0.94;
 
 // Cursor hole
-const CLEAR_RADIUS = 1.1;   // absolutely empty
-const PUSH_RADIUS = 3.6;    // pressure shell
+const CLEAR_RADIUS = 1.1;
+const PUSH_RADIUS = 3.6;
 const CLEAR_FORCE = 0.45;
 const EDGE_SMOOTHNESS = 4.5;
 
@@ -25,6 +25,9 @@ const EDGE_SMOOTHNESS = 4.5;
 const RIPPLE_SPEED = 3.5;
 const RIPPLE_STRENGTH = 0.18;
 const RIPPLE_FREQUENCY = 5.0;
+
+// Screen alignment
+const FIXED_Z = 0; // screen plane
 
 /* =======================
    TYPES
@@ -35,47 +38,6 @@ type Bubble = {
   velocity: THREE.Vector3;
   radius: number;
 };
-
-/* =======================
-   MATERIAL
-======================= */
-
-function createBubbleMaterial() {
-  const mat = new THREE.MeshPhysicalMaterial({
-    transparent: true,
-    opacity: 0.25,
-    roughness: 0,
-    metalness: 0,
-    clearcoat: 1,
-    clearcoatRoughness: 0,
-    reflectivity: 1,
-    side: THREE.DoubleSide,
-  });
-
-  mat.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      `#include <output_fragment>`,
-      `
-      float fresnel = pow(
-        1.0 - dot(normalize(vNormal), normalize(vViewPosition)),
-        3.0
-      );
-
-      vec3 iridescence = vec3(
-        sin(fresnel * 8.0),
-        sin(fresnel * 6.0 + 1.0),
-        sin(fresnel * 4.0 + 2.0)
-      ) * 0.6;
-
-      outgoingLight += iridescence * fresnel * 1.6;
-
-      #include <output_fragment>
-      `
-    );
-  };
-
-  return mat;
-}
 
 /* =======================
    COMPONENT
@@ -91,14 +53,12 @@ export default function GlassBubbleCluster() {
   const tmp = new THREE.Vector3();
   const tangent = new THREE.Vector3();
 
-  const material = useMemo(() => createBubbleMaterial(), []);
-
   const bubbles = useMemo<Bubble[]>(() => {
     return Array.from({ length: BUBBLE_COUNT }).map(() => ({
       position: new THREE.Vector3(
         (Math.random() - 0.5) * 1.6,
         (Math.random() - 0.5) * 1.6,
-        (Math.random() - 0.5) * 0.8
+        FIXED_Z
       ),
       velocity: new THREE.Vector3(),
       radius: 0.25 + Math.random() * 0.3,
@@ -115,7 +75,7 @@ export default function GlassBubbleCluster() {
     cursor.current.set(
       mouse.x * viewport.width * 0.5,
       mouse.y * viewport.height * 0.5,
-      0
+      FIXED_Z
     );
 
     for (let i = 0; i < bubbles.length; i++) {
@@ -123,14 +83,17 @@ export default function GlassBubbleCluster() {
       const mesh = group.current?.children[i] as THREE.Mesh;
       if (!mesh) continue;
 
-      /* 🧲 CENTER ATTRACTION */
-      b.velocity.addScaledVector(b.position, -CENTER_FORCE);
+      /* 🧲 CENTER ATTRACTION (XY ONLY) */
+      b.velocity.x += -b.position.x * CENTER_FORCE;
+      b.velocity.y += -b.position.y * CENTER_FORCE;
 
-      /* 🫧 BUBBLE SEPARATION */
+      /* 🫧 SEPARATION (XY ONLY) */
       for (let j = i + 1; j < bubbles.length; j++) {
         const o = bubbles[j];
 
         tmp.subVectors(b.position, o.position);
+        tmp.z = 0;
+
         const d = tmp.length();
         const min = b.radius + o.radius;
 
@@ -141,31 +104,30 @@ export default function GlassBubbleCluster() {
         }
       }
 
-      /* 🚫 CURSOR HOLE (TRUE EMPTY ZONE) */
+      /* 🚫 CURSOR HOLE */
       tmp.subVectors(b.position, cursor.current);
+      tmp.z = 0;
+
       const dist = tmp.length();
 
       if (dist > 0.0001) {
         const dir = tmp.clone().normalize();
 
-        /* 🕳️ HARD EXCLUSION CORE */
+        // Hard exclusion core
         if (dist < CLEAR_RADIUS) {
-          // Clamp position to boundary
           b.position
             .copy(cursor.current)
             .addScaledVector(dir, CLEAR_RADIUS);
 
-          // Kill inward velocity
           const inward = b.velocity.dot(dir);
           if (inward < 0) {
             b.velocity.addScaledVector(dir, -inward);
           }
 
-          // Strong outward impulse
           b.velocity.addScaledVector(dir, CLEAR_FORCE * 1.5);
         }
 
-        /* 🌫️ SOFT PRESSURE SHELL */
+        // Soft pressure shell
         if (dist < PUSH_RADIUS) {
           const x = THREE.MathUtils.clamp(
             (dist - CLEAR_RADIUS) / (PUSH_RADIUS - CLEAR_RADIUS),
@@ -177,12 +139,11 @@ export default function GlassBubbleCluster() {
 
           b.velocity.addScaledVector(dir, pressure * CLEAR_FORCE);
 
-          // Tangential flow
           tangent.set(-dir.y, dir.x, 0);
           b.velocity.addScaledVector(tangent, pressure * 0.06);
         }
 
-        /* 🌊 PRESSURE RIPPLE */
+        // Ripple
         const ripple =
           Math.sin(
             dist * RIPPLE_FREQUENCY -
@@ -194,11 +155,16 @@ export default function GlassBubbleCluster() {
         b.velocity.addScaledVector(dir, ripple);
       }
 
-      /* 🧊 DAMPING & INTEGRATION */
+      /* 🧊 DAMPING */
       b.velocity.multiplyScalar(DAMPING);
+
+      /* 🚀 INTEGRATE (LOCK Z) */
       b.position.add(b.velocity);
+      b.position.z = FIXED_Z;
+      b.velocity.z = 0;
 
       mesh.position.lerp(b.position, 0.4);
+      mesh.lookAt(0, 0, 5);
     }
   });
 
@@ -209,8 +175,19 @@ export default function GlassBubbleCluster() {
   return (
     <group ref={group}>
       {bubbles.map((b, i) => (
-        <mesh key={i} material={material}>
+        <mesh key={i}>
           <sphereGeometry args={[b.radius, 16, 16]} />
+          <meshPhysicalMaterial
+            color="#ffffff"
+            roughness={0.25}
+            metalness={0.05}
+            clearcoat={1}
+            clearcoatRoughness={0.08}
+            transparent
+            opacity={1}
+            depthTest={false}
+            depthWrite={false}
+          />
         </mesh>
       ))}
     </group>

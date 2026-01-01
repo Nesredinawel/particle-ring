@@ -3,17 +3,31 @@
 
 import { Text } from "@react-three/drei";
 
-export default function BackgroundText() {
+type BackgroundTextProps = {
+  label: string;
+  position?: [number, number, number];
+  fontSize?: number;
+  color?: string;
+  letterSpacing?: number;
+};
+
+export default function BackgroundText({
+  label,
+  position = [0, 0, -2],
+  fontSize = 3.2,
+  color = "white",
+  letterSpacing = -0.12,
+}: BackgroundTextProps) {
   return (
     <Text
-      position={[0, 0, -2]}
-      fontSize={3.2}
-      color="white"
+      position={position}
+      fontSize={fontSize}
+      color={color}
       anchorX="center"
       anchorY="middle"
-      letterSpacing={-0.12}
+      letterSpacing={letterSpacing}
     >
-      FUTURE
+      {label}
     </Text>
   );
 }
