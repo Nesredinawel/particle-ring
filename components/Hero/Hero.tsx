@@ -35,7 +35,7 @@ export default function Hero() {
       </div>
 
       {/* 3D Scene */}
-      <Scene3 />
+      <Scene />
        {/*  vertical line */}
       <div className="absolute top-0 left-16 h-full w-[2px] bg-white opacity-20 z-10"></div>
       {/*  vertical line */}
